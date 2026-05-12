@@ -31,6 +31,11 @@ class Command(BaseCommand):
             user.role = role
             user.email = email
             user.set_password(password)
+            # Give the manager Django admin access too, so reviewers can
+            # inspect the database via /admin/ without shell access.
+            if role == User.Role.MANAGER:
+                user.is_staff = True
+                user.is_superuser = True
             user.save()
             verb = 'Created' if created else 'Updated'
             self.stdout.write(f'{verb} {role:<8} -> {username} / {password}')
