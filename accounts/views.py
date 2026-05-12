@@ -8,6 +8,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.permissions import IsManager
+from accounts.models import User
+
 from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
 
 
@@ -81,3 +84,16 @@ class RegisterView(APIView):
         return Response(
             UserSerializer(user).data, status=status.HTTP_201_CREATED
         )
+    
+class StaffListView(APIView):
+    """
+    GET /api/auth/staff/
+
+    Manager-only. Returns all maintenance staff so the manager UI can
+    populate the "assign to" dropdown.
+    """
+    permission_classes = [IsAuthenticated, IsManager]
+
+    def get(self, request):
+        staff_qs = User.objects.filter(role=User.Role.STAFF).order_by('username')
+        return Response(UserSerializer(staff_qs, many=True).data)
